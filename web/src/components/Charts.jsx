@@ -51,8 +51,8 @@ export function KpiCards({ items }) {
             }
             key={item.label}
           >
-            <div className="kpi-icon">
-              <Icon size={19} />
+            <div className="kpi-icon" aria-hidden="true">
+              <Icon size={19} strokeWidth={2} />
             </div>
             <div className="kpi-content">
               <p>{item.label}</p>

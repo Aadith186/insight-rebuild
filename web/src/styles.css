@@ -2225,8 +2225,18 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+.kpi-icon svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  margin: 0;
   flex-shrink: 0;
 }
 .kpi-content {
@@ -3662,6 +3672,7 @@ body {
   }
   .kpi-icon > svg {
     width: 16px;
+    height: 16px;
   }
   .kpi-content p {
     font-size: 8px;
