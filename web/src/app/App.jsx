@@ -163,7 +163,38 @@ export default function App() {
     };
   }, [mobile]);
   if (a.loading)
-    return <div className="state full-height">Loading Insight…</div>;
+    return (
+      <div className="state full-height">
+        {localStorage.getItem("insight-signed-in")
+          ? "Restoring your session…"
+          : "Loading Insight…"}
+      </div>
+    );
+  if (
+    !a.auth &&
+    localStorage.getItem("insight-signed-in") &&
+    a.sessionError &&
+    !path.startsWith("/verify-email") &&
+    !path.startsWith("/reset-password")
+  )
+    return (
+      <div className="state full-height">
+        <h2>Still connecting</h2>
+        <p className="muted">{a.sessionError}</p>
+        <button className="primary" onClick={() => a.refresh()}>
+          Retry
+        </button>
+        <button
+          className="subtle"
+          onClick={() => {
+            localStorage.removeItem("insight-signed-in");
+            a.setAuth(null);
+          }}
+        >
+          Sign in again
+        </button>
+      </div>
+    );
   if (
     !a.auth ||
     path.startsWith("/verify-email") ||
@@ -385,6 +416,8 @@ export default function App() {
             onClick={() =>
               api("/auth/logout", { method: "POST" })
                 .then(() => {
+                  localStorage.removeItem("insight-signed-in");
+                  a.setAuth(null);
                   a.changeWorkspace("");
                   a.refresh();
                 })

@@ -119,6 +119,11 @@ export default function Identity() {
               });
               if (verify || reset || mode === "forgot") notify(r.data.message);
               else {
+                // Establish session from the login/register payload, then confirm
+                // via /auth/me so a slow proxy cannot bounce us back to sign-in.
+                if (r.data?.user) {
+                  localStorage.setItem("insight-signed-in", "1");
+                }
                 await refresh();
                 if (!route.startsWith("/invitation")) go("/dashboard");
               }
