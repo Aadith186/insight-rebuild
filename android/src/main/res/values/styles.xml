@@ -1,0 +1,12 @@
+<resources>
+  <style name="InsightTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:fontFamily">sans</item>
+    <item name="android:windowActionModeOverlay">true</item>
+    <item name="android:colorAccent">#003b59</item>
+    <item name="android:windowBackground">#f5f8fa</item>
+    <item name="android:statusBarColor">#003b59</item>
+    <item name="android:navigationBarColor">#f5f8fa</item>
+    <item name="android:windowLightStatusBar">false</item>
+    <item name="android:windowLightNavigationBar">true</item>
+  </style>
+</resources>

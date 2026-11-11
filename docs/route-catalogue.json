@@ -1,0 +1,1528 @@
+[
+  {
+    "id": "API-001",
+    "method": "POST",
+    "path": "/auth/register",
+    "access": "Public",
+    "contract": "email,password,name,accountType=CREATOR/BRAND/AGENCY \u2192 user, memberships",
+    "guard": "No public OWNER assignment; email uniqueness; create requested profile/org transactionally."
+  },
+  {
+    "id": "API-002",
+    "method": "POST",
+    "path": "/auth/login",
+    "access": "Public",
+    "contract": "email,password \u2192 user, availableContexts; HTTP-only session cookie",
+    "guard": "Uniform invalid-credential error; reject suspended user; throttle attempts."
+  },
+  {
+    "id": "API-003",
+    "method": "POST",
+    "path": "/auth/refresh",
+    "access": "Session",
+    "contract": "refresh cookie \u2192 rotated session",
+    "guard": "Rotate token hash; reject reuse/revoked/expired token."
+  },
+  {
+    "id": "API-004",
+    "method": "POST",
+    "path": "/auth/email-verifications",
+    "access": "Public/User",
+    "contract": "email \u2192 202 verification request",
+    "guard": "Uniform response; throttle abuse; configured real email delivery required."
+  },
+  {
+    "id": "API-005",
+    "method": "POST",
+    "path": "/auth/email-verifications/confirm",
+    "access": "Public",
+    "contract": "token \u2192 verified user",
+    "guard": "Single-use unexpired hash; no author or role assignment."
+  },
+  {
+    "id": "API-006",
+    "method": "POST",
+    "path": "/auth/password-resets",
+    "access": "Public",
+    "contract": "email \u2192 202 reset request",
+    "guard": "Uniform response; send only through configured email delivery."
+  },
+  {
+    "id": "API-007",
+    "method": "POST",
+    "path": "/auth/password-resets/confirm",
+    "access": "Public",
+    "contract": "token,newPassword \u2192 reset result",
+    "guard": "Single-use token; hash password; revoke existing sessions."
+  },
+  {
+    "id": "API-008",
+    "method": "PUT",
+    "path": "/auth/password",
+    "access": "User",
+    "contract": "currentPassword,newPassword \u2192 updated credential",
+    "guard": "Check existing password; revoke other sessions; audit without credential values."
+  },
+  {
+    "id": "API-009",
+    "method": "POST",
+    "path": "/auth/logout",
+    "access": "Session",
+    "contract": "\u2192 204",
+    "guard": "Revoke current session; clear cookies."
+  },
+  {
+    "id": "API-010",
+    "method": "POST",
+    "path": "/auth/logout-all",
+    "access": "User",
+    "contract": "\u2192 204",
+    "guard": "Revoke all user sessions."
+  },
+  {
+    "id": "API-011",
+    "method": "GET",
+    "path": "/auth/me",
+    "access": "User",
+    "contract": "\u2192 user + available organization/client contexts",
+    "guard": "No tokens/password hashes in response."
+  },
+  {
+    "id": "API-012",
+    "method": "GET",
+    "path": "/auth/sessions",
+    "access": "User",
+    "contract": "\u2192 own sessions",
+    "guard": "Only current user; safe device metadata."
+  },
+  {
+    "id": "API-013",
+    "method": "DELETE",
+    "path": "/auth/sessions/:sessionId",
+    "access": "User",
+    "contract": "\u2192 204",
+    "guard": "Only own session."
+  },
+  {
+    "id": "API-014",
+    "method": "GET",
+    "path": "/config",
+    "access": "Public",
+    "contract": "\u2192 brand colours, active formats, configured capabilities",
+    "guard": "Only publish safe capabilities and public branding."
+  },
+  {
+    "id": "API-015",
+    "method": "GET",
+    "path": "/health/live",
+    "access": "Public",
+    "contract": "\u2192 process health",
+    "guard": "Does not claim MongoDB is healthy."
+  },
+  {
+    "id": "API-016",
+    "method": "GET",
+    "path": "/health/ready",
+    "access": "Operator",
+    "contract": "\u2192 database/media/outbox readiness",
+    "guard": "503 on database failure; redact credentials."
+  },
+  {
+    "id": "API-017",
+    "method": "GET",
+    "path": "/me",
+    "access": "User",
+    "contract": "\u2192 own account/profile summary",
+    "guard": "Authenticated identity only."
+  },
+  {
+    "id": "API-018",
+    "method": "PATCH",
+    "path": "/me",
+    "access": "User",
+    "contract": "name, preferences \u2192 user",
+    "guard": "Allowlisted fields; no role/grant/status writes."
+  },
+  {
+    "id": "API-019",
+    "method": "GET",
+    "path": "/me/creator-profile",
+    "access": "Creator",
+    "contract": "\u2192 own editable profile",
+    "guard": "Owner of profile."
+  },
+  {
+    "id": "API-020",
+    "method": "PATCH",
+    "path": "/me/creator-profile",
+    "access": "Creator",
+    "contract": "bio,city,languages,audience,startingRateMinor,avatarAssetId \u2192 profile",
+    "guard": "Validate own/public media; no computed-stat writes."
+  },
+  {
+    "id": "API-021",
+    "method": "GET",
+    "path": "/creators",
+    "access": "Brand/Agency/Owner",
+    "contract": "search,niche,city,rateMin,rateMax,sort,cursor \u2192 public profiles",
+    "guard": "Hide suspended creators from new discovery; scope-safe projection."
+  },
+  {
+    "id": "API-022",
+    "method": "GET",
+    "path": "/creators/:creatorId",
+    "access": "Authorized user",
+    "contract": "\u2192 public profile, metrics and summary",
+    "guard": "No email/private payout/address disclosure."
+  },
+  {
+    "id": "API-023",
+    "method": "GET",
+    "path": "/creators/:creatorId/projects",
+    "access": "Authorized user",
+    "contract": "\u2192 completed public projects",
+    "guard": "Settled projects only; agreed public links."
+  },
+  {
+    "id": "API-024",
+    "method": "GET",
+    "path": "/creators/:creatorId/reviews",
+    "access": "Authorized user",
+    "contract": "cursor \u2192 public reviews",
+    "guard": "Read-only safe projection."
+  },
+  {
+    "id": "API-025",
+    "method": "POST",
+    "path": "/me/social-accounts",
+    "access": "Creator",
+    "contract": "platform,handle,profileUrl,followers,engagementBps,audience \u2192 social account",
+    "guard": "Self-reported source and measurement date are explicit."
+  },
+  {
+    "id": "API-026",
+    "method": "PATCH",
+    "path": "/me/social-accounts/:socialAccountId",
+    "access": "Creator",
+    "contract": "editable metrics/handle fields \u2192 account",
+    "guard": "Ownership; computed connected-source fields cannot be forged."
+  },
+  {
+    "id": "API-027",
+    "method": "DELETE",
+    "path": "/me/social-accounts/:socialAccountId",
+    "access": "Creator",
+    "contract": "\u2192 204",
+    "guard": "Only own account; no effect on accepted agreement snapshots."
+  },
+  {
+    "id": "API-028",
+    "method": "GET",
+    "path": "/creators/:creatorId/portfolio",
+    "access": "Authorized user",
+    "contract": "\u2192 ordered portfolio",
+    "guard": "Public/allowed media only."
+  },
+  {
+    "id": "API-029",
+    "method": "POST",
+    "path": "/me/portfolio",
+    "access": "Creator",
+    "contract": "title,description,assetId / externalVideoUrl,brandId?,order \u2192 item",
+    "guard": "Exactly one ready asset or valid supported link."
+  },
+  {
+    "id": "API-030",
+    "method": "PATCH",
+    "path": "/me/portfolio/:portfolioItemId",
+    "access": "Creator",
+    "contract": "title,description,order,media \u2192 item",
+    "guard": "Ownership and media permissions."
+  },
+  {
+    "id": "API-031",
+    "method": "DELETE",
+    "path": "/me/portfolio/:portfolioItemId",
+    "access": "Creator",
+    "contract": "\u2192 204",
+    "guard": "Remove public listing without deleting agreement evidence."
+  },
+  {
+    "id": "API-032",
+    "method": "GET",
+    "path": "/organizations/:organizationId",
+    "access": "Member/allowed participant",
+    "contract": "\u2192 brand/agency profile",
+    "guard": "Public view redacts member-only contacts."
+  },
+  {
+    "id": "API-033",
+    "method": "PATCH",
+    "path": "/organizations/:organizationId",
+    "access": "Org admin",
+    "contract": "name,description,city,contactPhone,contactEmail,website,logoAssetId \u2192 organization",
+    "guard": "Organization ownership; no verification/self-promotion to owner."
+  },
+  {
+    "id": "API-034",
+    "method": "GET",
+    "path": "/organizations/:organizationId/projects",
+    "access": "Authorized user",
+    "contract": "\u2192 completed collaborations",
+    "guard": "Safe published summaries only."
+  },
+  {
+    "id": "API-035",
+    "method": "GET",
+    "path": "/organizations/:organizationId/reviews",
+    "access": "Authorized user",
+    "contract": "\u2192 creator reviews",
+    "guard": "Derived records, not editable ratings."
+  },
+  {
+    "id": "API-036",
+    "method": "GET",
+    "path": "/agencies/:agencyId/clients",
+    "access": "Agency member",
+    "contract": "cursor,status \u2192 clients",
+    "guard": "Intersect active membership grants."
+  },
+  {
+    "id": "API-037",
+    "method": "POST",
+    "path": "/agencies/:agencyId/clients",
+    "access": "Agency admin",
+    "contract": "brand identity/contact,budgetMinor,retainerChargeMinor \u2192 AgencyClient",
+    "guard": "Create managed brand or attach only via authorized delegation; never seize unrelated brand IDs."
+  },
+  {
+    "id": "API-038",
+    "method": "GET",
+    "path": "/agencies/:agencyId/clients/:clientId",
+    "access": "Scoped agency member",
+    "contract": "\u2192 client/profile/budget summary",
+    "guard": "Client belongs to selected agency and is authorized."
+  },
+  {
+    "id": "API-039",
+    "method": "PATCH",
+    "path": "/agencies/:agencyId/clients/:clientId",
+    "access": "Agency admin",
+    "contract": "contacts,budget,retainer,brand profile \u2192 client",
+    "guard": "Retain financial history and accepted agreement terms."
+  },
+  {
+    "id": "API-040",
+    "method": "POST",
+    "path": "/agencies/:agencyId/clients/:clientId/archive",
+    "access": "Agency admin",
+    "contract": "reason \u2192 archived client",
+    "guard": "New work disabled; historical access retained for existing work."
+  },
+  {
+    "id": "API-041",
+    "method": "GET",
+    "path": "/organizations/:organizationId/members",
+    "access": "Org admin",
+    "contract": "cursor \u2192 memberships",
+    "guard": "Redact identity/security fields."
+  },
+  {
+    "id": "API-042",
+    "method": "PATCH",
+    "path": "/memberships/:membershipId",
+    "access": "Org admin",
+    "contract": "role,typed clientScopes \u2192 membership",
+    "guard": "Validate same org, clients and campaigns; do not permit owner/ORG_ADMIN escalation through a reviewer editor."
+  },
+  {
+    "id": "API-043",
+    "method": "POST",
+    "path": "/memberships/:membershipId/revoke",
+    "access": "Org admin",
+    "contract": "reason \u2192 revoked membership",
+    "guard": "Immediate session-scope enforcement; preserve audit and authored records."
+  },
+  {
+    "id": "API-044",
+    "method": "GET",
+    "path": "/organizations/:organizationId/invitations",
+    "access": "Org admin",
+    "contract": "status,cursor \u2192 invitations",
+    "guard": "Token hashes omitted; raw token returned only when created."
+  },
+  {
+    "id": "API-045",
+    "method": "POST",
+    "path": "/organizations/:organizationId/invitations",
+    "access": "Org admin",
+    "contract": "email,role,clientScopes \u2192 invitation + one-time URL",
+    "guard": "Expiry; scope validation; optional configured delivery, manual sharing supported."
+  },
+  {
+    "id": "API-046",
+    "method": "GET",
+    "path": "/invitations/:token",
+    "access": "Public",
+    "contract": "\u2192 minimal invitation metadata",
+    "guard": "Hash lookup; no member roster/private content; validate expiry."
+  },
+  {
+    "id": "API-047",
+    "method": "POST",
+    "path": "/invitations/:token/accept",
+    "access": "Matching user",
+    "contract": "\u2192 activated membership, availableContexts",
+    "guard": "Existing/new account supported; one-time transaction; preserve other memberships."
+  },
+  {
+    "id": "API-048",
+    "method": "POST",
+    "path": "/invitations/:token/decline",
+    "access": "Matching user",
+    "contract": "\u2192 declined invitation",
+    "guard": "Do not expose token or invitation after closure."
+  },
+  {
+    "id": "API-049",
+    "method": "POST",
+    "path": "/invitations/:invitationId/revoke",
+    "access": "Org admin",
+    "contract": "reason \u2192 revoked invitation",
+    "guard": "Same organization only."
+  },
+  {
+    "id": "API-050",
+    "method": "GET",
+    "path": "/campaigns",
+    "access": "Creator/Brand/Agency/Owner",
+    "contract": "search,niche,brandId,clientId,status,cursor \u2192 campaigns",
+    "guard": "Creator discovery only approved/current briefs; internal revisions protected."
+  },
+  {
+    "id": "API-051",
+    "method": "POST",
+    "path": "/campaigns",
+    "access": "Commissioner",
+    "contract": "brandId,agencyClientId?,typed draft,budget,spots,deadline \u2192 draft",
+    "guard": "Agency client/campaign creation permission; no submit/approve payload flags."
+  },
+  {
+    "id": "API-052",
+    "method": "GET",
+    "path": "/campaigns/:campaignId",
+    "access": "Scoped user",
+    "contract": "\u2192 campaign + published/current permitted revision + availableSpots",
+    "guard": "Scope by membership and publication state."
+  },
+  {
+    "id": "API-053",
+    "method": "PATCH",
+    "path": "/campaigns/:campaignId",
+    "access": "Commissioner",
+    "contract": "draft fields + expectedVersion \u2192 draft",
+    "guard": "Only editable draft/rejected states; clear obsolete approval; preserve prior frozen revisions."
+  },
+  {
+    "id": "API-054",
+    "method": "GET",
+    "path": "/campaigns/:campaignId/revisions",
+    "access": "Scoped user",
+    "contract": "\u2192 revision history",
+    "guard": "Creators see only publication/own-application-allowed revisions."
+  },
+  {
+    "id": "API-055",
+    "method": "GET",
+    "path": "/campaigns/:campaignId/revisions/:revisionId",
+    "access": "Scoped user",
+    "contract": "\u2192 immutable brief",
+    "guard": "Revision must belong to campaign; scope check."
+  },
+  {
+    "id": "API-056",
+    "method": "POST",
+    "path": "/campaigns/:campaignId/submit",
+    "access": "Commissioner",
+    "contract": "expectedVersion \u2192 pending platform review",
+    "guard": "Freeze revision; agency requires approved client decision for exact revision/hash."
+  },
+  {
+    "id": "API-057",
+    "method": "POST",
+    "path": "/campaigns/:campaignId/close",
+    "access": "Commissioner",
+    "contract": "reason,expectedVersion \u2192 closed campaign",
+    "guard": "Transaction closes new applications and declines pending pitches; accepted work continues."
+  },
+  {
+    "id": "API-058",
+    "method": "PUT",
+    "path": "/campaigns/:campaignId/assignment",
+    "access": "Agency admin",
+    "contract": "membershipId \u2192 assignment",
+    "guard": "Same agency/client; grant explicit campaign scope atomically."
+  },
+  {
+    "id": "API-059",
+    "method": "DELETE",
+    "path": "/campaigns/:campaignId/assignment",
+    "access": "Agency admin",
+    "contract": "\u2192 campaign",
+    "guard": "Remove responsibility, not historical authorship; explicit grant revocation is separate."
+  },
+  {
+    "id": "API-060",
+    "method": "POST",
+    "path": "/campaigns/:campaignId/applications",
+    "access": "Creator",
+    "contract": "pitch,proposedRateMinor \u2192 application",
+    "guard": "Approved/open revision, deadline, capacity and no duplicate active pitch."
+  },
+  {
+    "id": "API-061",
+    "method": "GET",
+    "path": "/me/applications",
+    "access": "Creator",
+    "contract": "state,cursor \u2192 own applications",
+    "guard": "Retain link to offer and current published brief."
+  },
+  {
+    "id": "API-062",
+    "method": "GET",
+    "path": "/campaigns/:campaignId/applications",
+    "access": "Commissioner/Owner",
+    "contract": "state,cursor \u2192 pitches + safe creator summaries",
+    "guard": "Campaign/client scope; rates and private pitch text not public."
+  },
+  {
+    "id": "API-063",
+    "method": "GET",
+    "path": "/applications/:applicationId",
+    "access": "Creator/Commissioner/Owner",
+    "contract": "\u2192 application + response/offer link",
+    "guard": "Participant-only record."
+  },
+  {
+    "id": "API-064",
+    "method": "POST",
+    "path": "/applications/:applicationId/withdraw",
+    "access": "Creator",
+    "contract": "expectedVersion \u2192 withdrawn",
+    "guard": "Pending only."
+  },
+  {
+    "id": "API-065",
+    "method": "POST",
+    "path": "/applications/:applicationId/decline",
+    "access": "Commissioner",
+    "contract": "reason,expectedVersion \u2192 declined",
+    "guard": "Pending only; notify creator."
+  },
+  {
+    "id": "API-066",
+    "method": "GET",
+    "path": "/shortlist-entries",
+    "access": "Commissioner",
+    "contract": "clientBrandId?,cursor \u2192 creators",
+    "guard": "Agency requires authorized client context; compound client-specific scope."
+  },
+  {
+    "id": "API-067",
+    "method": "POST",
+    "path": "/shortlist-entries",
+    "access": "Commissioner",
+    "contract": "creatorId,clientBrandId? \u2192 entry",
+    "guard": "Unique agency/brand/client/creator tuple; never global agency-only list."
+  },
+  {
+    "id": "API-068",
+    "method": "DELETE",
+    "path": "/shortlist-entries/:entryId",
+    "access": "Commissioner",
+    "contract": "\u2192 204",
+    "guard": "Same owner org and authorized client."
+  },
+  {
+    "id": "API-069",
+    "method": "GET",
+    "path": "/me/saved-campaigns",
+    "access": "Creator",
+    "contract": "cursor \u2192 saved briefs",
+    "guard": "Only own saved entries; closed status displayed."
+  },
+  {
+    "id": "API-070",
+    "method": "POST",
+    "path": "/me/saved-campaigns",
+    "access": "Creator",
+    "contract": "campaignId \u2192 saved entry",
+    "guard": "Discoverable or previously applied campaign only; idempotent unique pair."
+  },
+  {
+    "id": "API-071",
+    "method": "DELETE",
+    "path": "/me/saved-campaigns/:campaignId",
+    "access": "Creator",
+    "contract": "\u2192 204",
+    "guard": "Only own entry."
+  },
+  {
+    "id": "API-072",
+    "method": "GET",
+    "path": "/offers",
+    "access": "Scoped participant",
+    "contract": "state,clientId,campaignId,cursor \u2192 offers",
+    "guard": "Creator cannot read internal/client-review drafts."
+  },
+  {
+    "id": "API-073",
+    "method": "POST",
+    "path": "/offers",
+    "access": "Commissioner",
+    "contract": "creatorId,applicationId?,campaignId?,brand/client context,typed terms \u2192 draft",
+    "guard": "Check application ownership, format/product rules, capacity and budget; author fields derived."
+  },
+  {
+    "id": "API-074",
+    "method": "GET",
+    "path": "/offers/:offerId",
+    "access": "Scoped participant",
+    "contract": "\u2192 allowed proposal + exact breakdown",
+    "guard": "Protect internal drafts and client-review messages."
+  },
+  {
+    "id": "API-075",
+    "method": "PATCH",
+    "path": "/offers/:offerId",
+    "access": "Commissioner",
+    "contract": "draft terms + expectedVersion \u2192 revised draft",
+    "guard": "Before SENT only; invalidate client decision; preserve revision history."
+  },
+  {
+    "id": "API-076",
+    "method": "POST",
+    "path": "/offers/:offerId/send",
+    "access": "Commissioner",
+    "contract": "expectedVersion \u2192 sent offer",
+    "guard": "Agency requires exact client sign-off; freeze displayed format/fee/net terms; notify creator."
+  },
+  {
+    "id": "API-077",
+    "method": "POST",
+    "path": "/offers/:offerId/withdraw",
+    "access": "Commissioner",
+    "contract": "reason,expectedVersion \u2192 withdrawn",
+    "guard": "SENT and not accepted only; free reserved campaign spot."
+  },
+  {
+    "id": "API-078",
+    "method": "POST",
+    "path": "/offers/:offerId/accept",
+    "access": "Assigned creator",
+    "contract": "expectedVersion; Idempotency-Key \u2192 agreement + collaboration",
+    "guard": "Single transaction creates immutable agreement, preparation states and application/capacity updates."
+  },
+  {
+    "id": "API-079",
+    "method": "POST",
+    "path": "/offers/:offerId/decline",
+    "access": "Assigned creator",
+    "contract": "reason?,expectedVersion \u2192 declined",
+    "guard": "SENT only; notification and history."
+  },
+  {
+    "id": "API-080",
+    "method": "GET",
+    "path": "/agreements/:agreementId",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 immutable scope/fee/net/products/rights snapshot",
+    "guard": "No generic agreement update route."
+  },
+  {
+    "id": "API-081",
+    "method": "GET",
+    "path": "/client-approvals",
+    "access": "Reviewer/Agency/Brand",
+    "contract": "state,targetType,clientId,cursor \u2192 approval inbox",
+    "guard": "Only assigned client/campaign scope."
+  },
+  {
+    "id": "API-082",
+    "method": "POST",
+    "path": "/client-approvals",
+    "access": "Agency preparer",
+    "contract": "targetType,targetId,targetVersion,reviewerUserIds \u2192 request/share URL",
+    "guard": "Freeze/reference exact revision. Reviewers must be active client-authorized users and distinct from preparer."
+  },
+  {
+    "id": "API-083",
+    "method": "GET",
+    "path": "/client-approvals/:approvalId",
+    "access": "Assigned reviewer/Commissioner",
+    "contract": "\u2192 snapshot + decisions",
+    "guard": "Authorized sign-in is required; link does not make work public."
+  },
+  {
+    "id": "API-084",
+    "method": "POST",
+    "path": "/client-approvals/:approvalId/decisions",
+    "access": "Assigned client reviewer/Brand",
+    "contract": "decision,note,expectedVersion \u2192 immutable decision",
+    "guard": "Human user identity enforced; no agency self-approval or stale-version approval."
+  },
+  {
+    "id": "API-085",
+    "method": "POST",
+    "path": "/client-approvals/:approvalId/cancel",
+    "access": "Agency preparer",
+    "contract": "reason \u2192 superseded request",
+    "guard": "Preserve old decisions; no removal of accepted agreement evidence."
+  },
+  {
+    "id": "API-086",
+    "method": "GET",
+    "path": "/collaborations",
+    "access": "Scoped participant/Owner",
+    "contract": "state,clientId,campaignId,dueFrom,dueTo,needsAction,cursor \u2192 work",
+    "guard": "Database filters use live grants; no whole-marketplace blob."
+  },
+  {
+    "id": "API-087",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 agreement, phase, allowedActions, version",
+    "guard": "Private address/bank fields use further field-level permissions."
+  },
+  {
+    "id": "API-088",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/activity",
+    "access": "Scoped participant/Owner",
+    "contract": "cursor \u2192 event history",
+    "guard": "Safe audit projection retaining authors and dates."
+  },
+  {
+    "id": "API-089",
+    "method": "PUT",
+    "path": "/collaborations/:collaborationId/assignment",
+    "access": "Agency admin",
+    "contract": "membershipId \u2192 responsibility",
+    "guard": "Same agency/client; explicit direct-work grant if needed."
+  },
+  {
+    "id": "API-090",
+    "method": "DELETE",
+    "path": "/collaborations/:collaborationId/assignment",
+    "access": "Agency admin",
+    "contract": "\u2192 collaboration",
+    "guard": "Retain past assignment events."
+  },
+  {
+    "id": "API-091",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/agreement",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 accepted terms",
+    "guard": "Read-only snapshot, not editable live campaign fields."
+  },
+  {
+    "id": "API-092",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/product-package",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 agreed products + permitted fulfillment details",
+    "guard": "No arbitrary changes to accepted items/value."
+  },
+  {
+    "id": "API-093",
+    "method": "PUT",
+    "path": "/collaborations/:collaborationId/delivery-address",
+    "access": "Assigned creator",
+    "contract": "typed recipient,address,phone \u2192 package",
+    "guard": "Accepted work only; before dispatch; private participant projection."
+  },
+  {
+    "id": "API-094",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/shipments",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 all shipments/replacements/events",
+    "guard": "Never overwrite earlier attempt history."
+  },
+  {
+    "id": "API-095",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/shipments",
+    "access": "Commissioner",
+    "contract": "courier,tracking,expectedDeliveryAt,replacementForShipmentId?,productIssueId? \u2192 shipment",
+    "guard": "Address exists; replacement matches an open issue and original shipment."
+  },
+  {
+    "id": "API-096",
+    "method": "PATCH",
+    "path": "/shipments/:shipmentId",
+    "access": "Commissioner",
+    "contract": "tracking,expectedDeliveryAt,expectedVersion \u2192 shipment",
+    "guard": "Not received/closed; append tracking-change event."
+  },
+  {
+    "id": "API-097",
+    "method": "POST",
+    "path": "/shipments/:shipmentId/receipt",
+    "access": "Assigned creator",
+    "contract": "confirmation,note? \u2192 received shipment",
+    "guard": "Only dispatched, not already received; update preparation readiness atomically."
+  },
+  {
+    "id": "API-098",
+    "method": "POST",
+    "path": "/shipments/:shipmentId/issues",
+    "access": "Assigned creator",
+    "contract": "type,description,evidenceAssetIds \u2192 issue",
+    "guard": "Shipment belongs to creator collaboration; evidence owned/allowed."
+  },
+  {
+    "id": "API-099",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/product-issues",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 issue history",
+    "guard": "Retain resolved issues."
+  },
+  {
+    "id": "API-100",
+    "method": "POST",
+    "path": "/product-issues/:issueId/resolve",
+    "access": "Commissioner after creator receipt",
+    "contract": "resolutionNote,receivedShipmentId \u2192 resolved issue",
+    "guard": "Valid replacement receipt or documented agreed resolution; do not unblock content on unilateral brand assertion."
+  },
+  {
+    "id": "API-101",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/product-questions",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 Q&A",
+    "guard": "Conversation remains with this work."
+  },
+  {
+    "id": "API-102",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/product-questions",
+    "access": "Creator/Commissioner",
+    "contract": "category,question \u2192 question",
+    "guard": "Accepted active work; named author."
+  },
+  {
+    "id": "API-103",
+    "method": "POST",
+    "path": "/product-questions/:questionId/answers",
+    "access": "Commissioner",
+    "contract": "text \u2192 answer",
+    "guard": "Same collaboration scope; retain responder and prior answers."
+  },
+  {
+    "id": "API-104",
+    "method": "POST",
+    "path": "/media/assets",
+    "access": "Authorized uploader",
+    "contract": "multipart file + purpose + collaborationId? \u2192 READY/rejected asset",
+    "guard": "Private filesystem/object-store adapter; file/mime/header/size/metadata checks."
+  },
+  {
+    "id": "API-105",
+    "method": "GET",
+    "path": "/media/assets/:assetId",
+    "access": "Authorized owner/participant",
+    "contract": "\u2192 safe metadata",
+    "guard": "No raw private storage keys or unrestricted URLs."
+  },
+  {
+    "id": "API-106",
+    "method": "GET",
+    "path": "/media/assets/:assetId/content",
+    "access": "Authorized owner/participant",
+    "contract": "\u2192 media bytes/range",
+    "guard": "Private evidence/content authorization; support HTTP Range."
+  },
+  {
+    "id": "API-107",
+    "method": "DELETE",
+    "path": "/media/assets/:assetId",
+    "access": "Uploader",
+    "contract": "\u2192 unreferenced asset retired",
+    "guard": "Only unreferenced upload; accepted work/evidence cannot be deleted through this route."
+  },
+  {
+    "id": "API-108",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/content-versions",
+    "access": "Scoped participant/Owner",
+    "contract": "cursor \u2192 version history",
+    "guard": "All retained versions with permissions."
+  },
+  {
+    "id": "API-109",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/content-versions",
+    "access": "Assigned creator",
+    "contract": "assetId / externalUrl,title,note,expectedVersion \u2192 new version",
+    "guard": "Paid funding held; required products received; active work; atomic sequence number."
+  },
+  {
+    "id": "API-110",
+    "method": "GET",
+    "path": "/content-versions/:contentVersionId",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 version, playback metadata, approval status",
+    "guard": "Version belongs to authorized collaboration."
+  },
+  {
+    "id": "API-111",
+    "method": "GET",
+    "path": "/content-versions/:contentVersionId/comments",
+    "access": "Scoped participant/Owner",
+    "contract": "cursor \u2192 version-linked comments",
+    "guard": "No cross-version notes."
+  },
+  {
+    "id": "API-112",
+    "method": "POST",
+    "path": "/content-versions/:contentVersionId/comments",
+    "access": "Creator/Commissioner/Reviewer",
+    "contract": "text,timestampMs?,parentCommentId? \u2192 comment",
+    "guard": "Named authenticated sender; timestamp within supported bounds."
+  },
+  {
+    "id": "API-113",
+    "method": "POST",
+    "path": "/content-versions/:contentVersionId/revision-requests",
+    "access": "Commissioner",
+    "contract": "feedback,kind,expectedVersion \u2192 revision request",
+    "guard": "INCLUDED requires allowance; ADDITIONAL proposes creator consent, not immediate extra work."
+  },
+  {
+    "id": "API-114",
+    "method": "POST",
+    "path": "/revision-requests/:revisionRequestId/decision",
+    "access": "Assigned creator",
+    "contract": "accept:Boolean,note? \u2192 accepted/declined",
+    "guard": "Additional request only, once; immutable decision."
+  },
+  {
+    "id": "API-115",
+    "method": "POST",
+    "path": "/revision-requests/:revisionRequestId/request-work",
+    "access": "Commissioner",
+    "contract": "expectedVersion \u2192 active revision round",
+    "guard": "Included allowance or accepted extra consent; one consumption per round."
+  },
+  {
+    "id": "API-116",
+    "method": "POST",
+    "path": "/content-versions/:contentVersionId/approve",
+    "access": "Commissioner",
+    "contract": "expectedVersion \u2192 final approved version",
+    "guard": "Exact latest version; no open dispute; agency needs exact client approval. Owner is not a creative approver."
+  },
+  {
+    "id": "API-117",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/completion-submissions",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 publishing/handover attempts",
+    "guard": "Retain correction history."
+  },
+  {
+    "id": "API-118",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/completion-submissions",
+    "access": "Assigned creator",
+    "contract": "mode,platform?,url,completedAt,approvedContentVersionId \u2192 pending completion",
+    "guard": "Only approved work; valid URL/date and agreed completion mode."
+  },
+  {
+    "id": "API-119",
+    "method": "POST",
+    "path": "/completion-submissions/:completionId/verify",
+    "access": "Commissioner",
+    "contract": "expectedVersion,confirmationNote \u2192 verified completion",
+    "guard": "Check exact live/handover link against agreement; not a release by itself."
+  },
+  {
+    "id": "API-120",
+    "method": "POST",
+    "path": "/completion-submissions/:completionId/request-correction",
+    "access": "Commissioner",
+    "contract": "reason,expectedVersion \u2192 changes requested",
+    "guard": "Retain old attempt; creator submits a new attempt."
+  },
+  {
+    "id": "API-121",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/settlements",
+    "access": "Commissioner",
+    "contract": "expectedVersion; Idempotency-Key \u2192 completed work + journal",
+    "guard": "Verified completion, no dispute, funding/product conditions; barter has no monetary journal release."
+  },
+  {
+    "id": "API-122",
+    "method": "GET",
+    "path": "/conversations",
+    "access": "Scoped participant/Owner oversight",
+    "contract": "contextType,clientId,campaignId,collaborationId,cursor \u2192 inbox",
+    "guard": "Client-review threads invisible to creators."
+  },
+  {
+    "id": "API-123",
+    "method": "POST",
+    "path": "/conversations",
+    "access": "Scoped participant",
+    "contract": "contextType,contextId,recipient creator/brand for direct context \u2192 existing/new conversation",
+    "guard": "Unique participantScopeKey; validate exact parties; no arbitrary recipient injection."
+  },
+  {
+    "id": "API-124",
+    "method": "GET",
+    "path": "/conversations/:conversationId",
+    "access": "Participant/Owner oversight",
+    "contract": "\u2192 conversation context and participants",
+    "guard": "Re-check live grants."
+  },
+  {
+    "id": "API-125",
+    "method": "GET",
+    "path": "/conversations/:conversationId/messages",
+    "access": "Participant/Owner oversight",
+    "contract": "before,cursor \u2192 ordered message history",
+    "guard": "Immutable author IDs; private attachments scoped."
+  },
+  {
+    "id": "API-126",
+    "method": "POST",
+    "path": "/conversations/:conversationId/messages",
+    "access": "Participant",
+    "contract": "text,attachmentAssetIds?,clientMessageId \u2192 message",
+    "guard": "Sender derived from session; scoped context; transactional outbox notification."
+  },
+  {
+    "id": "API-127",
+    "method": "POST",
+    "path": "/conversations/:conversationId/read",
+    "access": "Participant",
+    "contract": "lastMessageId \u2192 read cursor",
+    "guard": "Only this human user\u2019s cursor, not entire agency read state."
+  },
+  {
+    "id": "API-128",
+    "method": "GET",
+    "path": "/wallets/me",
+    "access": "Creator/Brand",
+    "contract": "\u2192 available/reserved/held/earned/withdrawn summary",
+    "guard": "Server-calculated money in minor units; no client writes."
+  },
+  {
+    "id": "API-129",
+    "method": "GET",
+    "path": "/ledger",
+    "access": "Scoped participant/Owner",
+    "contract": "clientId,campaignId,collaborationId,kind,date,cursor \u2192 journal projection",
+    "guard": "Safe scope/field filters; explicit gross, included fee and net."
+  },
+  {
+    "id": "API-130",
+    "method": "GET",
+    "path": "/ledger/export",
+    "access": "Scoped participant/Owner",
+    "contract": "same filters,format=csv \u2192 streamed CSV",
+    "guard": "Same authorization as list; protect spreadsheet formula injection."
+  },
+  {
+    "id": "API-131",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/fundings",
+    "access": "Scoped participant/Owner",
+    "contract": "\u2192 submitted/verified/rejected funding attempts",
+    "guard": "Private proof media protected."
+  },
+  {
+    "id": "API-132",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/fundings",
+    "access": "Commissioner",
+    "contract": "amountMinor,rail,externalReference,proofAssetId?; Idempotency-Key \u2192 submitted funding",
+    "guard": "Exact outstanding agreed gross; active accepted work; no synthetic confirmed money."
+  },
+  {
+    "id": "API-133",
+    "method": "GET",
+    "path": "/me/withdrawals",
+    "access": "Creator",
+    "contract": "state,cursor \u2192 payout history",
+    "guard": "Own amounts/destinations only."
+  },
+  {
+    "id": "API-134",
+    "method": "POST",
+    "path": "/me/withdrawals",
+    "access": "Creator",
+    "contract": "amountMinor,destination; Idempotency-Key \u2192 withdrawal + reservation",
+    "guard": "Atomic available-balance check; no concurrent overdraw."
+  },
+  {
+    "id": "API-135",
+    "method": "GET",
+    "path": "/withdrawals/:withdrawalId",
+    "access": "Owner/requesting creator",
+    "contract": "\u2192 payout details",
+    "guard": "Full destination only for requester/authorized operator; list uses masking."
+  },
+  {
+    "id": "API-136",
+    "method": "GET",
+    "path": "/refunds",
+    "access": "Scoped brand/Agency/Owner",
+    "contract": "state,clientId,cursor \u2192 refund obligations/transfers",
+    "guard": "Owner-only processing."
+  },
+  {
+    "id": "API-137",
+    "method": "GET",
+    "path": "/refunds/:refundId",
+    "access": "Scoped brand/Agency/Owner",
+    "contract": "\u2192 refund detail",
+    "guard": "Preserve related dispute and transfer reference."
+  },
+  {
+    "id": "API-138",
+    "method": "GET",
+    "path": "/agency-charges",
+    "access": "Agency/authorized client",
+    "contract": "clientId,campaignId,state,cursor \u2192 separate service charges",
+    "guard": "No deduction from creator wallet."
+  },
+  {
+    "id": "API-139",
+    "method": "POST",
+    "path": "/agency-charges",
+    "access": "Agency admin",
+    "contract": "clientId,scope,amountMinor,description \u2192 agreed charge",
+    "guard": "Authorized relationship and budget context."
+  },
+  {
+    "id": "API-140",
+    "method": "POST",
+    "path": "/agency-charges/:chargeId/settle",
+    "access": "Agency admin",
+    "contract": "externalReference,settledAt \u2192 charge",
+    "guard": "Record actual separate service payment; preserve agreement snapshot."
+  },
+  {
+    "id": "API-141",
+    "method": "POST",
+    "path": "/agency-charges/:chargeId/waive",
+    "access": "Agency admin",
+    "contract": "reason \u2192 waived charge",
+    "guard": "Audit and report adjustment; no destructive removal."
+  },
+  {
+    "id": "API-142",
+    "method": "GET",
+    "path": "/disputes",
+    "access": "Participant/Owner",
+    "contract": "state,clientId,cursor \u2192 cases",
+    "guard": "Only eligible scope."
+  },
+  {
+    "id": "API-143",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/disputes",
+    "access": "Participant",
+    "contract": "reason,description,evidenceRefs \u2192 open dispute",
+    "guard": "Unsettled active eligible work; one open dispute; freeze financial/content transitions."
+  },
+  {
+    "id": "API-144",
+    "method": "GET",
+    "path": "/disputes/:disputeId",
+    "access": "Participant/Owner",
+    "contract": "\u2192 case + scoped evidence + agreement",
+    "guard": "No evidence from unrelated records."
+  },
+  {
+    "id": "API-145",
+    "method": "POST",
+    "path": "/disputes/:disputeId/evidence",
+    "access": "Participant",
+    "contract": "typed evidence references,note \u2192 appended evidence",
+    "guard": "Validate same collaboration; retain source record/content."
+  },
+  {
+    "id": "API-146",
+    "method": "GET",
+    "path": "/collaborations/:collaborationId/reviews",
+    "access": "Scoped participant/allowed public view",
+    "contract": "\u2192 reviews",
+    "guard": "Public projection excludes private dispute evidence."
+  },
+  {
+    "id": "API-147",
+    "method": "POST",
+    "path": "/collaborations/:collaborationId/reviews",
+    "access": "Creator/Commissioner",
+    "contract": "stars,text \u2192 review",
+    "guard": "Completed settlement only; unique party-side; refresh computed rating through transactional outbox."
+  },
+  {
+    "id": "API-148",
+    "method": "GET",
+    "path": "/notifications",
+    "access": "User",
+    "contract": "unread,cursor \u2192 own notifications",
+    "guard": "Live scope filter; per-human identity, including agency staff."
+  },
+  {
+    "id": "API-149",
+    "method": "POST",
+    "path": "/notifications/:notificationId/read",
+    "access": "User",
+    "contract": "\u2192 own readAt",
+    "guard": "Recipient only."
+  },
+  {
+    "id": "API-150",
+    "method": "POST",
+    "path": "/notifications/read-all",
+    "access": "User",
+    "contract": "before? \u2192 count",
+    "guard": "Only own allowed notifications."
+  },
+  {
+    "id": "API-151",
+    "method": "GET",
+    "path": "/dashboards/creator",
+    "access": "Creator",
+    "contract": "\u2192 actions,deadlines,earnings,active/completed work",
+    "guard": "Database aggregations restricted to creator."
+  },
+  {
+    "id": "API-152",
+    "method": "GET",
+    "path": "/dashboards/brand",
+    "access": "Brand",
+    "contract": "\u2192 campaigns,deals,deadline/actions,financial totals",
+    "guard": "Brand scope."
+  },
+  {
+    "id": "API-153",
+    "method": "GET",
+    "path": "/dashboards/agency",
+    "access": "Agency member",
+    "contract": "clientId? \u2192 authorized cross-client overview",
+    "guard": "Default all authorized clients; grant-restricted managers/reviewers see only assigned work."
+  },
+  {
+    "id": "API-154",
+    "method": "GET",
+    "path": "/dashboards/client-review",
+    "access": "Client reviewer",
+    "contract": "\u2192 pending briefs/offers/versions",
+    "guard": "Only independent decision targets assigned to this reviewer."
+  },
+  {
+    "id": "API-155",
+    "method": "GET",
+    "path": "/reports/clients/:clientId",
+    "access": "Agency/authorized client",
+    "contract": "from,to \u2192 progress/delivery/spend/outcomes",
+    "guard": "Client and campaign scopes; separate creator fee/net/agency charges."
+  },
+  {
+    "id": "API-156",
+    "method": "GET",
+    "path": "/reports/clients/:clientId/export",
+    "access": "Agency/authorized client",
+    "contract": "same filters,format=csv \u2192 report",
+    "guard": "Same data/permissions as report."
+  },
+  {
+    "id": "API-157",
+    "method": "GET",
+    "path": "/reports/campaigns/:campaignId",
+    "access": "Commissioner/authorized client",
+    "contract": "from,to \u2192 campaign report",
+    "guard": "Campaign grant and exact client relationship."
+  },
+  {
+    "id": "API-158",
+    "method": "GET",
+    "path": "/reports/campaigns/:campaignId/export",
+    "access": "Commissioner/authorized client",
+    "contract": "same filters,format=csv \u2192 report",
+    "guard": "Same report projection."
+  },
+  {
+    "id": "API-159",
+    "method": "GET",
+    "path": "/audit-logs",
+    "access": "Org admin/Owner",
+    "contract": "resourceType,resourceId,actor,date,cursor \u2192 audit history",
+    "guard": "Org/campaign scope; redacted changes only."
+  },
+  {
+    "id": "API-160",
+    "method": "GET",
+    "path": "/owner/dashboard",
+    "access": "Owner",
+    "contract": "\u2192 member/campaign/value/revenue + queue counts",
+    "guard": "Owner context required."
+  },
+  {
+    "id": "API-161",
+    "method": "GET",
+    "path": "/owner/members",
+    "access": "Owner",
+    "contract": "type,status,search,cursor \u2192 directory",
+    "guard": "Human user and organization identities clearly distinguished."
+  },
+  {
+    "id": "API-162",
+    "method": "GET",
+    "path": "/owner/members/:memberId",
+    "access": "Owner",
+    "contract": "memberType \u2192 complete account review projection",
+    "guard": "Private financial destinations accessed only in payout routes."
+  },
+  {
+    "id": "API-163",
+    "method": "POST",
+    "path": "/owner/members/:memberId/verification",
+    "access": "Owner",
+    "contract": "memberType,status,reason \u2192 verified/pending decision",
+    "guard": "No self-approval by ordinary org admin."
+  },
+  {
+    "id": "API-164",
+    "method": "POST",
+    "path": "/owner/members/:memberId/suspension",
+    "access": "Owner",
+    "contract": "memberType,reason \u2192 suspended",
+    "guard": "Revoke matching context/session access; retain history."
+  },
+  {
+    "id": "API-165",
+    "method": "POST",
+    "path": "/owner/members/:memberId/restoration",
+    "access": "Owner",
+    "contract": "memberType,reason \u2192 restored",
+    "guard": "Audit explicit decision."
+  },
+  {
+    "id": "API-166",
+    "method": "GET",
+    "path": "/owner/campaign-reviews",
+    "access": "Owner",
+    "contract": "state,cursor \u2192 moderation queue",
+    "guard": "Exact frozen campaign revision."
+  },
+  {
+    "id": "API-167",
+    "method": "POST",
+    "path": "/owner/campaign-reviews/:revisionId/decisions",
+    "access": "Owner",
+    "contract": "APPROVE/REJECT/REQUEST_CHANGES,reason,expectedVersion \u2192 moderation result",
+    "guard": "Agency revision needs valid prior client approval; creator discovery only after approval."
+  },
+  {
+    "id": "API-168",
+    "method": "GET",
+    "path": "/owner/fundings",
+    "access": "Owner",
+    "contract": "state,cursor \u2192 reconciliation queue",
+    "guard": "Proof and actual expected amounts visible."
+  },
+  {
+    "id": "API-169",
+    "method": "POST",
+    "path": "/owner/fundings/:fundingId/verify",
+    "access": "Owner",
+    "contract": "verificationReference,note; Idempotency-Key \u2192 held funds + journal",
+    "guard": "Verify actual incoming transfer; duplicate reference/amount checks."
+  },
+  {
+    "id": "API-170",
+    "method": "POST",
+    "path": "/owner/fundings/:fundingId/reject",
+    "access": "Owner",
+    "contract": "reason \u2192 rejected attempt",
+    "guard": "No held funds created; brand can submit another attempt."
+  },
+  {
+    "id": "API-171",
+    "method": "GET",
+    "path": "/owner/withdrawals",
+    "access": "Owner",
+    "contract": "state,cursor \u2192 payout queue",
+    "guard": "Mask destination on list."
+  },
+  {
+    "id": "API-172",
+    "method": "POST",
+    "path": "/owner/withdrawals/:withdrawalId/process",
+    "access": "Owner",
+    "contract": "expectedVersion \u2192 processing payout",
+    "guard": "Reserved funds exist; cannot process twice."
+  },
+  {
+    "id": "API-173",
+    "method": "POST",
+    "path": "/owner/withdrawals/:withdrawalId/complete",
+    "access": "Owner",
+    "contract": "actualTransferReference,paidAt; Idempotency-Key \u2192 paid + journal",
+    "guard": "Actual external transfer required; transaction releases reservation once."
+  },
+  {
+    "id": "API-174",
+    "method": "POST",
+    "path": "/owner/withdrawals/:withdrawalId/reject",
+    "access": "Owner",
+    "contract": "reason; Idempotency-Key \u2192 rejected + reversal",
+    "guard": "No actual completed payout; release reservation once."
+  },
+  {
+    "id": "API-175",
+    "method": "GET",
+    "path": "/owner/refunds",
+    "access": "Owner",
+    "contract": "state,cursor \u2192 refund-transfer queue",
+    "guard": "A decision obligation is distinct from a completed transfer."
+  },
+  {
+    "id": "API-176",
+    "method": "POST",
+    "path": "/owner/refunds/:refundId/process",
+    "access": "Owner",
+    "contract": "expectedVersion \u2192 processing",
+    "guard": "Valid refundable obligation."
+  },
+  {
+    "id": "API-177",
+    "method": "POST",
+    "path": "/owner/refunds/:refundId/complete",
+    "access": "Owner",
+    "contract": "actualTransferReference,paidAt; Idempotency-Key \u2192 refunded + journal",
+    "guard": "Actual external transfer reference; no duplicate completion."
+  },
+  {
+    "id": "API-178",
+    "method": "POST",
+    "path": "/owner/disputes/:disputeId/resolve",
+    "access": "Owner",
+    "contract": "RELEASE/REFUND,reason,evidenceIds; Idempotency-Key \u2192 final resolution",
+    "guard": "One final decision; journal + wallet/refund obligation + outbox in one transaction."
+  },
+  {
+    "id": "API-179",
+    "method": "GET",
+    "path": "/owner/revenue",
+    "access": "Owner",
+    "contract": "date,clientId,campaignId \u2192 gross/fee/net/held/released/refunded totals",
+    "guard": "Ledger-based aggregation, not counters from the frontend."
+  },
+  {
+    "id": "API-180",
+    "method": "GET",
+    "path": "/owner/settings",
+    "access": "Owner",
+    "contract": "\u2192 latest settings + config versions",
+    "guard": "Secrets excluded."
+  },
+  {
+    "id": "API-181",
+    "method": "PUT",
+    "path": "/owner/settings",
+    "access": "Owner",
+    "contract": "commissionBps,fundingInstructions,supportContact,expectedVersion \u2192 new settings version",
+    "guard": "Existing sent/accepted terms unchanged."
+  },
+  {
+    "id": "API-182",
+    "method": "GET",
+    "path": "/owner/collaboration-formats",
+    "access": "Owner",
+    "contract": "\u2192 active/inactive format definitions",
+    "guard": "Historic formats retained."
+  },
+  {
+    "id": "API-183",
+    "method": "POST",
+    "path": "/owner/collaboration-formats",
+    "access": "Owner",
+    "contract": "key,label,money/product/completion rules \u2192 format",
+    "guard": "Valid typed rules; unique stable key."
+  },
+  {
+    "id": "API-184",
+    "method": "PATCH",
+    "path": "/owner/collaboration-formats/:formatId",
+    "access": "Owner",
+    "contract": "editable rule fields,expectedVersion \u2192 new version",
+    "guard": "Affects new offers only; no mutation of existing snapshots."
+  },
+  {
+    "id": "API-185",
+    "method": "POST",
+    "path": "/owner/collaboration-formats/:formatId/deactivate",
+    "access": "Owner",
+    "contract": "reason \u2192 inactive format",
+    "guard": "Preserve agreements using it."
+  },
+  {
+    "id": "API-186",
+    "method": "GET",
+    "path": "/owner/audit-logs",
+    "access": "Owner",
+    "contract": "actor,resource,action,date,cursor \u2192 marketplace audit",
+    "guard": "Read-only, redacted event evidence."
+  },
+  {
+    "id": "API-187",
+    "method": "GET",
+    "path": "/analytics/overview",
+    "access": "Scoped user",
+    "contract": "from,to \u2192 monthly ledger series, current KPIs, work/format distributions and budgets",
+    "guard": "Live client/campaign scope; no fabricated growth; monetary journals separated from commitments."
+  },
+  {
+    "id": "API-188",
+    "method": "GET",
+    "path": "/me/review-opportunities",
+    "access": "Creator/Commissioner",
+    "contract": "cursor \u2192 settled work the current party has not reviewed",
+    "guard": "No owner/reviewer authorship; one review per party after settlement."
+  },
+  {
+    "id": "API-189",
+    "method": "GET",
+    "path": "/campaigns/:campaignId/reviews",
+    "access": "Authorized user",
+    "contract": "cursor \u2192 verified creator campaign-experience feedback",
+    "guard": "Only completed collaboration authors; campaign parent permissions checked."
+  },
+  {
+    "id": "API-190",
+    "method": "GET",
+    "path": "/review-summaries/:targetId",
+    "access": "Authorized user",
+    "contract": "type=CREATOR/BRAND/CAMPAIGN \u2192 average/count/star distribution",
+    "guard": "Derived from stored reviews; campaign permission checked."
+  },
+  {
+    "id": "API-191",
+    "method": "GET",
+    "path": "/inbox/summary",
+    "description": "Authorized unread message, conversation and notification totals"
+  }
+]

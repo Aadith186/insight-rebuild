@@ -1,0 +1,35 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const AuditLog = define(
+  "AuditLog",
+  {
+    actorUserId: ref("User"),
+    actorName: String,
+    organizationId: ref("Organization"),
+    clientBrandOrganizationId: ref("Organization"),
+    campaignId: ref("Campaign"),
+    collaborationId: ref("Collaboration"),
+    action: String,
+    resourceType: String,
+    resourceId: { type: mongoose.Schema.Types.ObjectId },
+    changes: [sub({ field: String, beforeText: String, afterText: String })],
+    requestId: String,
+  },
+  [[{ organizationId: 1, createdAt: -1 }, {}]],
+);

@@ -1,0 +1,42 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const MediaAsset = define(
+  "MediaAsset",
+  {
+    uploaderUserId: ref("User", true),
+    purpose: en("AVATAR|PORTFOLIO|CONTENT|EVIDENCE|CAMPAIGN_COVER"),
+    collaborationId: ref("Collaboration"),
+    campaignId: ref("Campaign"),
+    storageKey: { type: String, select: false },
+    originalName: String,
+    mime: String,
+    sizeBytes: int(),
+    checksum: String,
+    referenceCount: int(),
+    durationMs: Number,
+    width: Number,
+    height: Number,
+    state: en("UPLOADING|READY|REJECTED|RETIRED"),
+    visibility: en("PRIVATE|PUBLIC"),
+  },
+  [
+    [{ storageKey: 1 }, { unique: true }],
+    [{ collaborationId: 1, purpose: 1 }, {}],
+  ],
+);

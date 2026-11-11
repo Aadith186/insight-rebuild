@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const CreatorProfile = define(
+  "CreatorProfile",
+  {
+    userId: ref("User", true),
+    bio: str(),
+    city: str(100),
+    cityNormalized: str(100),
+    niches: [String],
+    languages: [String],
+    startingRateMinor: int(),
+    audience,
+    avatarAssetId: ref("MediaAsset"),
+    verificationStatus: en("PENDING|VERIFIED|REJECTED"),
+    completedCount: int(),
+    ratingAverage: { type: Number, min: 0, max: 5, default: 0 },
+    ratingCount: int(),
+  },
+  [
+    [{ userId: 1 }, { unique: true }],
+    [{ cityNormalized: 1, niches: 1, verificationStatus: 1 }, {}],
+  ],
+);

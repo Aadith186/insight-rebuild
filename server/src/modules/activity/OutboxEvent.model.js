@@ -1,0 +1,48 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const OutboxEvent = define(
+  "OutboxEvent",
+  {
+    eventId: String,
+    kind: String,
+    resourceType: String,
+    resourceId: { type: mongoose.Schema.Types.ObjectId },
+    recipientUserIds: [ref("User")],
+    title: String,
+    screen: String,
+    organizationId: ref("Organization"),
+    brandOrganizationId: ref("Organization"),
+    campaignId: ref("Campaign"),
+    collaborationId: ref("Collaboration"),
+    status: en("PENDING|DONE|FAILED"),
+    attempts: int(),
+    nextAttemptAt: Date,
+    occurredAt: Date,
+    delivery: sub({
+      channel: en("IN_APP|EMAIL"),
+      templateKey: String,
+      recipientEmail: String,
+      encryptedOneTimePayload: { type: String, select: false },
+    }),
+  },
+  [
+    [{ eventId: 1 }, { unique: true }],
+    [{ status: 1, nextAttemptAt: 1 }, {}],
+  ],
+);

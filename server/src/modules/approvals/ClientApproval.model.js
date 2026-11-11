@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const ClientApproval = define(
+  "ClientApproval",
+  {
+    targetType: en("CAMPAIGN_REVISION|OFFER_REVISION|CONTENT_VERSION"),
+    targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    targetVersion: int(1),
+    targetHash: String,
+    brandOrganizationId: ref("Organization", true),
+    agencyOrganizationId: ref("Organization", true),
+    campaignId: ref("Campaign"),
+    collaborationId: ref("Collaboration"),
+    requestedByUserId: ref("User"),
+    reviewerUserIds: [ref("User")],
+    policy: en("ANY_ASSIGNED|ALL_ASSIGNED"),
+    state: en("PENDING|APPROVED|CHANGES_REQUESTED|SUPERSEDED"),
+    requestedAt: Date,
+  },
+  [
+    [{ targetType: 1, targetId: 1, targetVersion: 1 }, {}],
+    [{ reviewerUserIds: 1, state: 1 }, {}],
+  ],
+);

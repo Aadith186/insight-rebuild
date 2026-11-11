@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const Review = define(
+  "Review",
+  {
+    collaborationId: ref("Collaboration", true),
+    campaignId: ref("Campaign"),
+    campaignStars: {
+      type: Number,
+      min: 1,
+      max: 5,
+      validate: Number.isSafeInteger,
+    },
+    campaignFeedback: str(),
+    reviewerName: str(200),
+    reviewerUserId: ref("User"),
+    reviewingParty: en("CREATOR|COMMISSIONER"),
+    targetType: en("CREATOR|BRAND"),
+    targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    stars: int(1, 5),
+    text: str(),
+  },
+  [[{ collaborationId: 1, reviewingParty: 1 }, { unique: true }]],
+);

@@ -1,0 +1,35 @@
+import mongoose from "mongoose";
+import {
+  define,
+  ref,
+  str,
+  int,
+  en,
+  sub,
+  product,
+  deliverable,
+  rights,
+  audience,
+  scope,
+  format,
+  brief,
+  terms,
+  evidence,
+} from "../../core/schema.js";
+export const CompletionSubmission = define(
+  "CompletionSubmission",
+  {
+    collaborationId: ref("Collaboration", true),
+    approvedContentVersionId: ref("ContentVersion", true),
+    attemptNumber: int(1),
+    mode: en("PUBLISHED|HANDOVER"),
+    platform: String,
+    url: String,
+    completedAt: Date,
+    submittedByUserId: ref("User"),
+    state: en("PENDING|CHANGES_REQUESTED|VERIFIED"),
+    reviewNote: str(),
+    checkedByUserId: ref("User"),
+  },
+  [[{ collaborationId: 1, attemptNumber: 1 }, { unique: true }]],
+);
