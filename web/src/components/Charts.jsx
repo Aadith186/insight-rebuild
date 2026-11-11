@@ -52,7 +52,9 @@ export function KpiCards({ items }) {
             key={item.label}
           >
             <div className="kpi-icon" aria-hidden="true">
-              <Icon size={19} strokeWidth={2} />
+              <span className="kpi-icon-glyph">
+                <Icon size={18} strokeWidth={2.25} absoluteStrokeWidth={false} />
+              </span>
             </div>
             <div className="kpi-content">
               <p>{item.label}</p>

@@ -2220,24 +2220,39 @@ body {
   min-height: 120px;
 }
 .kpi-icon {
+  --kpi-icon-size: 36px;
+  --kpi-glyph-size: 18px;
+  position: relative;
   background: #3f729a;
   color: white;
-  width: 36px;
-  height: 36px;
+  width: var(--kpi-icon-size);
+  height: var(--kpi-icon-size);
   border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  flex: 0 0 var(--kpi-icon-size);
   flex-shrink: 0;
   line-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
-.kpi-icon svg {
+.kpi-icon-glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--kpi-glyph-size);
+  height: var(--kpi-glyph-size);
+  transform: translate(-50%, -50%);
   display: block;
-  width: 19px;
-  height: 19px;
-  margin: 0;
-  flex-shrink: 0;
+  line-height: 0;
+}
+.kpi-icon svg,
+.kpi-icon-glyph svg {
+  position: static;
+  display: block !important;
+  width: var(--kpi-glyph-size) !important;
+  height: var(--kpi-glyph-size) !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: visible;
 }
 .kpi-content {
   min-width: 0;
@@ -3379,8 +3394,8 @@ body {
     gap: 9px;
   }
   .kpi-icon {
-    width: 30px;
-    height: 30px;
+    --kpi-icon-size: 30px;
+    --kpi-glyph-size: 15px;
   }
   .kpi-content strong {
     font-size: 22px;
@@ -3470,8 +3485,8 @@ body {
     padding: 20px;
   }
   .kpi-icon {
-    width: 36px;
-    height: 36px;
+    --kpi-icon-size: 36px;
+    --kpi-glyph-size: 18px;
   }
   .editorial-hero {
     grid-template-columns: 1fr 38%;
@@ -3666,13 +3681,9 @@ body {
     border-radius: 11px;
   }
   .kpi-icon {
-    height: 29px;
-    width: 29px;
+    --kpi-icon-size: 30px;
+    --kpi-glyph-size: 15px;
     border-radius: 7px;
-  }
-  .kpi-icon > svg {
-    width: 16px;
-    height: 16px;
   }
   .kpi-content p {
     font-size: 8px;
