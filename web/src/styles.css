@@ -2221,7 +2221,7 @@ body {
 }
 .kpi-icon {
   --kpi-icon-size: 36px;
-  --kpi-glyph-size: 18px;
+  --kpi-glyph-size: 20px;
   position: relative;
   background: #3f729a;
   color: white;
@@ -2231,28 +2231,31 @@ body {
   flex: 0 0 var(--kpi-icon-size);
   flex-shrink: 0;
   line-height: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 .kpi-icon-glyph {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
   width: var(--kpi-glyph-size);
   height: var(--kpi-glyph-size);
-  transform: translate(-50%, -50%);
-  display: block;
+  margin: auto;
+  display: grid;
+  place-items: center;
   line-height: 0;
 }
 .kpi-icon svg,
 .kpi-icon-glyph svg {
-  position: static;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
   display: block !important;
   width: var(--kpi-glyph-size) !important;
   height: var(--kpi-glyph-size) !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
-  overflow: visible;
+  overflow: visible !important;
+  flex-shrink: 0;
 }
 .kpi-content {
   min-width: 0;
@@ -3394,8 +3397,8 @@ body {
     gap: 9px;
   }
   .kpi-icon {
-    --kpi-icon-size: 30px;
-    --kpi-glyph-size: 15px;
+    --kpi-icon-size: 32px;
+    --kpi-glyph-size: 18px;
   }
   .kpi-content strong {
     font-size: 22px;
@@ -3486,7 +3489,7 @@ body {
   }
   .kpi-icon {
     --kpi-icon-size: 36px;
-    --kpi-glyph-size: 18px;
+    --kpi-glyph-size: 20px;
   }
   .editorial-hero {
     grid-template-columns: 1fr 38%;
@@ -3681,8 +3684,8 @@ body {
     border-radius: 11px;
   }
   .kpi-icon {
-    --kpi-icon-size: 30px;
-    --kpi-glyph-size: 15px;
+    --kpi-icon-size: 32px;
+    --kpi-glyph-size: 18px;
     border-radius: 7px;
   }
   .kpi-content p {

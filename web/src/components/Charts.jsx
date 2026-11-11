@@ -53,7 +53,7 @@ export function KpiCards({ items }) {
           >
             <div className="kpi-icon" aria-hidden="true">
               <span className="kpi-icon-glyph">
-                <Icon size={18} strokeWidth={2.25} />
+                <Icon size={20} strokeWidth={2} />
               </span>
             </div>
             <div className="kpi-content">
