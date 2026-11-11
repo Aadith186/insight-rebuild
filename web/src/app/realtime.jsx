@@ -13,6 +13,9 @@ export function RealtimeProvider({ children }) {
     if (!auth) return;
     const s = io(API_ORIGIN || undefined, {
       withCredentials: true,
+      // Prefer polling first so same-origin Vercel rewrites can carry the session
+      // cookie; websocket upgrade is unreliable through Vercel proxies.
+      transports: ["polling", "websocket"],
       reconnection: true,
       reconnectionDelay: 700,
       reconnectionDelayMax: 5000,

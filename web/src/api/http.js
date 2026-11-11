@@ -1,11 +1,16 @@
 import { ANDROID_APP } from "../app/platform";
 
-/** Production (Vercel) sets VITE_API_ORIGIN to the Render API origin. */
+/**
+ * Prefer same-origin `/api` (Vercel rewrites proxy to Render) so session cookies
+ * stay first-party — required for Safari/mobile. Optional VITE_API_ORIGIN is only
+ * for direct cross-origin setups.
+ */
 export const API_ORIGIN = String(import.meta.env.VITE_API_ORIGIN || "").replace(
   /\/$/,
   "",
 );
-export const apiPath = (path) => API_ORIGIN + "/api/v1" + path;
+export const apiPath = (path) =>
+  (API_ORIGIN ? API_ORIGIN : "") + "/api/v1" + path;
 
 let context = {};
 export const setContext = (c) => (context = c);
@@ -25,11 +30,21 @@ export function mediaURL(id) {
 export async function api(path, { method = "GET", body, key, signal } = {}) {
   const multipart = body instanceof FormData;
   let res;
+  const timeout =
+    typeof AbortSignal !== "undefined" && AbortSignal.timeout
+      ? AbortSignal.timeout(90000)
+      : null;
+  const combined =
+    signal && timeout
+      ? AbortSignal.any
+        ? AbortSignal.any([signal, timeout])
+        : signal
+      : signal || timeout;
   try {
     res = await fetch(apiPath(path), {
       method,
       credentials: "include",
-      signal,
+      signal: combined,
       headers: {
         ...(ANDROID_APP ? { "X-Insight-Client": "android" } : {}),
         ...(!multipart && body ? { "Content-Type": "application/json" } : {}),
@@ -44,7 +59,12 @@ export async function api(path, { method = "GET", body, key, signal } = {}) {
       body: body ? (multipart ? body : JSON.stringify(body)) : undefined,
     });
   } catch (e) {
-    if (e.name === "AbortError") throw e;
+    if (e.name === "AbortError" || e.name === "TimeoutError") {
+      if (signal?.aborted) throw e;
+      throw new Error(
+        "Insight is taking too long to respond. Wait a moment and try again (the API may be waking up).",
+      );
+    }
     throw new Error(
       "Cannot reach Insight. Check that the API server is running.",
     );

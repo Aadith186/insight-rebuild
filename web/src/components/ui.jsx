@@ -799,7 +799,13 @@ export function Form({
           </button>
         )}
         <button className="primary" disabled={busy}>
-          {busy ? "Saving…" : submit}
+          {busy
+            ? /sign in/i.test(submit)
+              ? "Signing in…"
+              : /create account/i.test(submit)
+                ? "Creating…"
+                : "Saving…"
+            : submit}
         </button>
       </footer>
     </form>

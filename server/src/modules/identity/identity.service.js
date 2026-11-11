@@ -4,6 +4,9 @@ import { create, get, save, assert } from "../../core/db.js";
 import { identity } from "../../core/policy.js";
 import { hash, token, encrypt } from "../../core/crypto.js";
 export const cookie = () => {
+  // Default lax: production frontend should call the API same-origin via Vercel
+  // rewrites so Safari/mobile keep the session cookie. Set COOKIE_SAMESITE=none
+  // only for true cross-site browser→API setups.
   const sameSite = (process.env.COOKIE_SAMESITE || "lax").toLowerCase();
   return {
     httpOnly: true,
