@@ -37,6 +37,8 @@ export function createApp() {
   app.use(
     requestId,
     helmet({
+      // Required when the Vercel frontend calls the Render API cross-origin.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -45,7 +47,7 @@ export function createApp() {
           imgSrc: ["'self'", "data:", "blob:"],
           mediaSrc: ["'self'", "https:", "blob:"],
           frameSrc: ["https://www.youtube.com", "https://player.vimeo.com"],
-          connectSrc: ["'self'"],
+          connectSrc: ["'self'", process.env.APP_ORIGIN].filter(Boolean),
         },
       },
     }),
