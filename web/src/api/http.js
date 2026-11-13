@@ -9,6 +9,24 @@ export const API_ORIGIN = String(import.meta.env.VITE_API_ORIGIN || "").replace(
   /\/$/,
   "",
 );
+/** Direct host used only to wake the free API. Login stays same-origin. */
+const WAKE_ORIGIN = "https://insight-api-tswg.onrender.com";
+export async function wakeApi(maxMs = 90000) {
+  const started = Date.now();
+  while (Date.now() - started < maxMs) {
+    try {
+      const res = await fetch(WAKE_ORIGIN + "/api/v1/health/live", {
+        mode: "cors",
+        cache: "no-store",
+      });
+      if (res.ok) return true;
+    } catch {
+      /* cold start often has no CORS headers until the process is up */
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  return false;
+}
 export const apiPath = (path) =>
   (API_ORIGIN ? API_ORIGIN : "") + "/api/v1" + path;
 

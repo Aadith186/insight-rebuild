@@ -1,7 +1,7 @@
 import { ANDROID_APP, editorialImage } from "../app/platform";
 import { ArrowUpRight, Link2, Server } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { api, go } from "../api/http";
+import { api, go, wakeApi } from "../api/http";
 import { useApp, useRoute } from "../app/context";
 import { Form, text, field, select } from "../components/ui";
 export default function Identity() {
@@ -14,8 +14,8 @@ export default function Identity() {
     verify = route.startsWith("/verify-email"),
     reset = route.startsWith("/reset-password");
   useEffect(() => {
-    // Free hosting sleeps. Ping it as soon as the sign-in screen is open.
-    api("/health/live", { timeoutMs: 45000 }).catch(() => {});
+    // Free hosting sleeps. Wake it directly so the sign-in proxy is already up.
+    wakeApi().catch(() => {});
   }, []);
   const fields = verify
     ? []
@@ -116,19 +116,25 @@ export default function Identity() {
               const send = () =>
                 api(path, {
                   method: "POST",
-                  timeoutMs: 45000,
+                  timeoutMs: 30000,
                   body: verify
                     ? { token: params.get("token") }
                     : reset
                       ? { token: params.get("token"), ...b }
                       : b,
                 });
+              notify("Starting Insight. The first sign-in after idle can take a minute.");
+              const awake = await wakeApi();
+              if (!awake)
+                throw new Error(
+                  "Insight did not start. Wait a moment and sign in again.",
+                );
               let r;
               try {
                 r = await send();
               } catch (e) {
                 if (![502, 503, 504].includes(e.status)) throw e;
-                await new Promise((resolve) => setTimeout(resolve, 2500));
+                await wakeApi(20000);
                 r = await send();
               }
               if (verify || reset || mode === "forgot") notify(r.data.message);
