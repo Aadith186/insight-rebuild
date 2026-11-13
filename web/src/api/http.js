@@ -27,12 +27,15 @@ export function mediaURL(id) {
     (query.size ? "?" + query : "")
   );
 }
-export async function api(path, { method = "GET", body, key, signal } = {}) {
+export async function api(
+  path,
+  { method = "GET", body, key, signal, timeoutMs = 25000 } = {},
+) {
   const multipart = body instanceof FormData;
   let res;
   const timeout =
     typeof AbortSignal !== "undefined" && AbortSignal.timeout
-      ? AbortSignal.timeout(90000)
+      ? AbortSignal.timeout(timeoutMs)
       : null;
   const combined =
     signal && timeout
@@ -61,9 +64,11 @@ export async function api(path, { method = "GET", body, key, signal } = {}) {
   } catch (e) {
     if (e.name === "AbortError" || e.name === "TimeoutError") {
       if (signal?.aborted) throw e;
-      throw new Error(
-        "Insight is taking too long to respond. Wait a moment and try again (the API may be waking up).",
+      const err = new Error(
+        "Insight is waking up. Wait a few seconds and sign in again.",
       );
+      err.status = 504;
+      throw err;
     }
     throw new Error(
       "Cannot reach Insight. Check that the API server is running.",
@@ -71,7 +76,15 @@ export async function api(path, { method = "GET", body, key, signal } = {}) {
   }
   if (res.status === 204) return { data: null };
   if (!(res.headers.get("Content-Type") || "").includes("application/json")) {
-    if (!res.ok) throw new Error("Download unavailable.");
+    if (!res.ok) {
+      const err = new Error(
+        res.status === 502 || res.status === 503 || res.status === 504
+          ? "Insight is waking up. Wait a few seconds and sign in again."
+          : "Insight could not complete that request.",
+      );
+      err.status = res.status;
+      throw err;
+    }
     return { data: await res.blob() };
   }
   const r = await res.json();

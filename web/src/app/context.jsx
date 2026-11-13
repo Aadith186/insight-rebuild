@@ -59,14 +59,14 @@ export function Provider({ children }) {
     return data;
   }, []);
   const refresh = useCallback(async () => {
-    const attempts = localStorage.getItem(SIGNED_IN_KEY) ? 4 : 2;
+    const attempts = localStorage.getItem(SIGNED_IN_KEY) ? 2 : 1;
     let lastError;
     setLoading(true);
     setSessionError("");
     try {
       for (let attempt = 0; attempt < attempts; attempt++) {
         try {
-          const r = await api("/auth/me");
+          const r = await api("/auth/me", { timeoutMs: 20000 });
           if (ANDROID_APP && r.data?.user.platformRole === "OWNER") {
             await api("/auth/logout", { method: "POST" });
             applyAuth(null);
@@ -168,6 +168,7 @@ export function Provider({ children }) {
       value={{
         auth,
         setAuth,
+        adopt: applyAuth,
         refresh,
         loading,
         sessionError,

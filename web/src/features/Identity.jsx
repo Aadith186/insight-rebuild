@@ -1,11 +1,11 @@
 import { ANDROID_APP, editorialImage } from "../app/platform";
 import { ArrowUpRight, Link2, Server } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api, go } from "../api/http";
 import { useApp, useRoute } from "../app/context";
 import { Form, text, field, select } from "../components/ui";
 export default function Identity() {
-  const { refresh, notify } = useApp(),
+  const { adopt, notify } = useApp(),
     route = useRoute(),
     [mode, setMode] = useState(
       route.startsWith("/register") ? "register" : "login",
@@ -13,6 +13,10 @@ export default function Identity() {
     params = new URLSearchParams(route.split("?")[1]),
     verify = route.startsWith("/verify-email"),
     reset = route.startsWith("/reset-password");
+  useEffect(() => {
+    // Free hosting sleeps. Ping it as soon as the sign-in screen is open.
+    api("/health/live", { timeoutMs: 45000 }).catch(() => {});
+  }, []);
   const fields = verify
     ? []
     : reset
@@ -109,22 +113,28 @@ export default function Identity() {
                     : mode === "register"
                       ? "/auth/register"
                       : "/auth/login";
-              const r = await api(path, {
-                method: "POST",
-                body: verify
-                  ? { token: params.get("token") }
-                  : reset
-                    ? { token: params.get("token"), ...b }
-                    : b,
-              });
+              const send = () =>
+                api(path, {
+                  method: "POST",
+                  timeoutMs: 45000,
+                  body: verify
+                    ? { token: params.get("token") }
+                    : reset
+                      ? { token: params.get("token"), ...b }
+                      : b,
+                });
+              let r;
+              try {
+                r = await send();
+              } catch (e) {
+                if (![502, 503, 504].includes(e.status)) throw e;
+                await new Promise((resolve) => setTimeout(resolve, 2500));
+                r = await send();
+              }
               if (verify || reset || mode === "forgot") notify(r.data.message);
               else {
-                // Establish session from the login/register payload, then confirm
-                // via /auth/me so a slow proxy cannot bounce us back to sign-in.
-                if (r.data?.user) {
-                  localStorage.setItem("insight-signed-in", "1");
-                }
-                await refresh();
+                if (!r.data?.user) throw new Error("Sign-in did not start a session.");
+                adopt(r.data);
                 if (!route.startsWith("/invitation")) go("/dashboard");
               }
             }}
